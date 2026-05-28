@@ -9,30 +9,58 @@ if(!isset($_SESSION['id'])){
 
 /*
 |--------------------------------------------------------------------------
-| TOTAL DE VOTOS
+| TOTAL GENERAL
 |--------------------------------------------------------------------------
 */
 
-$totalVotos = mysqli_query($con,"
+$totalGeneral = mysqli_query($con,"
 SELECT COUNT(*) total
 FROM votos
 ");
 
-$totalVotos = mysqli_fetch_assoc($totalVotos)['total'];
+$totalGeneral = mysqli_fetch_assoc($totalGeneral)['total'];
 
 /*
 |--------------------------------------------------------------------------
-| CANDIDATOS Y ESTADÍSTICAS
+| VOTOS POR CATEGORÍA
+|--------------------------------------------------------------------------
+*/
+
+$totalesCategoria = [];
+
+$consultaTotales = mysqli_query($con,"
+SELECT 
+    tipos_votacion.id,
+    tipos_votacion.nombre,
+    COUNT(votos.id) AS total
+
+FROM tipos_votacion
+
+LEFT JOIN votos
+ON tipos_votacion.id = votos.tipo_id
+
+GROUP BY tipos_votacion.id
+");
+
+while($t = mysqli_fetch_assoc($consultaTotales)){
+    $totalesCategoria[$t['id']] = $t['total'];
+}
+
+/*
+|--------------------------------------------------------------------------
+| CANDIDATOS
 |--------------------------------------------------------------------------
 */
 
 $candidatos = mysqli_query($con,"
 SELECT
+    candidatos.id,
     candidatos.nombre,
     candidatos.votos,
 
     partidos.nombre AS partido,
 
+    tipos_votacion.id AS tipo_id,
     tipos_votacion.nombre AS tipo
 
 FROM candidatos
@@ -43,7 +71,7 @@ ON candidatos.partido_id = partidos.id
 INNER JOIN tipos_votacion
 ON candidatos.tipo_id = tipos_votacion.id
 
-ORDER BY candidatos.votos DESC
+ORDER BY tipos_votacion.nombre ASC, candidatos.votos DESC
 ");
 ?>
 
@@ -65,18 +93,18 @@ body{
     margin:0;
     padding:0;
     font-family:Arial;
-    background:#f4f6f9;
+    background:#f1f5f9;
 }
 
 /* NAVBAR */
 
 .navbar{
-    background:#0b1f3a;
-    padding:15px 30px;
+    background:linear-gradient(90deg,#001f54,#003566);
+    color:white;
+    padding:18px 30px;
     display:flex;
     justify-content:space-between;
     align-items:center;
-    color:white;
 }
 
 .navbar h2{
@@ -87,6 +115,7 @@ body{
     color:white;
     text-decoration:none;
     margin-left:15px;
+    font-weight:bold;
 }
 
 /* MAIN */
@@ -99,10 +128,10 @@ body{
 
 .card{
     background:white;
-    border-radius:15px;
+    border-radius:18px;
     padding:25px;
     margin-bottom:25px;
-    box-shadow:0px 4px 12px rgba(0,0,0,0.08);
+    box-shadow:0 5px 15px rgba(0,0,0,0.08);
 }
 
 .welcome{
@@ -112,16 +141,17 @@ body{
 }
 
 .btn{
-    padding:12px 20px;
-    background:#0b1f3a;
+    background:#003566;
     color:white;
+    padding:12px 20px;
     text-decoration:none;
-    border-radius:8px;
+    border-radius:10px;
+    font-weight:bold;
     transition:0.3s;
 }
 
 .btn:hover{
-    background:#13335e;
+    background:#001d3d;
 }
 
 /* STATS */
@@ -132,21 +162,21 @@ body{
     gap:20px;
 }
 
-.stat-card{
+.stat{
     background:white;
-    border-radius:15px;
+    border-radius:18px;
     padding:20px;
-    box-shadow:0px 4px 12px rgba(0,0,0,0.08);
     text-align:center;
+    box-shadow:0 5px 15px rgba(0,0,0,0.08);
 }
 
-.stat-card h1{
+.stat h1{
     margin:0;
-    color:#0b1f3a;
     font-size:40px;
+    color:#003566;
 }
 
-/* TABLE */
+/* TABLA */
 
 table{
     width:100%;
@@ -154,13 +184,13 @@ table{
 }
 
 table th{
-    background:#0b1f3a;
+    background:#003566;
     color:white;
-    padding:14px;
+    padding:15px;
 }
 
 table td{
-    padding:14px;
+    padding:15px;
     border-bottom:1px solid #ddd;
 }
 
@@ -169,13 +199,22 @@ table td{
 .barra{
     width:100%;
     background:#ddd;
-    border-radius:10px;
+    border-radius:20px;
     overflow:hidden;
+    height:20px;
 }
 
 .progreso{
-    height:18px;
-    background:#0b1f3a;
+    height:20px;
+    background:linear-gradient(90deg,#00509d,#00b4d8);
+}
+
+/* TITULO */
+
+.titulo{
+    margin-top:40px;
+    margin-bottom:15px;
+    color:#003566;
 }
 
 </style>
@@ -191,13 +230,9 @@ table td{
 <h2>Votaciones Guatemala 2028</h2>
 
 <div>
-
 <a href="dashboard.php">Inicio</a>
-
 <a href="votar.php">Votar</a>
-
 <a href="../auth/logout.php">Cerrar Sesión</a>
-
 </div>
 
 </div>
@@ -218,7 +253,8 @@ Bienvenido,
 </h1>
 
 <p>
-A continuación puedes ver las estadísticas actuales de las votaciones, así como el total de votos registrados hasta el momento.
+Consulta los resultados parciales de las elecciones presidenciales,
+municipales y legislativas de Guatemala 2028.
 </p>
 
 </div>
@@ -233,48 +269,83 @@ Ir a votar
 
 </div>
 
-<!-- ESTADÍSTICAS -->
+<!-- STATS -->
 
 <div class="stats">
 
-<div class="stat-card">
+<div class="stat">
+<h3>Total General de Votos</h3>
+<h1><?php echo $totalGeneral; ?></h1>
+</div>
 
-<h3>Total de votos</h3>
+<?php
+
+$categorias = mysqli_query($con,"
+SELECT * FROM tipos_votacion
+");
+
+while($cat=mysqli_fetch_assoc($categorias)){
+
+$totalCategoria = $totalesCategoria[$cat['id']] ?? 0;
+?>
+
+<div class="stat">
+
+<h3>
+<?php echo $cat['nombre']; ?>
+</h3>
 
 <h1>
-<?php echo $totalVotos; ?>
+<?php echo $totalCategoria; ?>
 </h1>
 
-</div>
+<p>Votos registrados</p>
 
 </div>
 
-<!-- CANDIDATOS -->
+<?php } ?>
+
+</div>
+
+<!-- RESULTADOS -->
 
 <div class="card">
 
-<h2>Estadísticas Electorales</h2>
+<h2>Resultados Electorales</h2>
 
+<?php
+
+$actual = "";
+
+mysqli_data_seek($candidatos,0);
+
+while($c=mysqli_fetch_assoc($candidatos)){
+
+if($actual != $c['tipo']){
+
+$actual = $c['tipo'];
+
+echo "<h2 class='titulo'>".$actual."</h2>";
+
+echo "
 <table>
 
 <tr>
-
 <th>Candidato</th>
 <th>Partido</th>
-<th>Categoría</th>
 <th>Votos</th>
 <th>Porcentaje</th>
-
 </tr>
+";
+}
 
-<?php while($c=mysqli_fetch_assoc($candidatos)){
+$totalCategoria = $totalesCategoria[$c['tipo_id']] ?? 0;
 
 $porcentaje = 0;
 
-if($totalVotos > 0){
-    $porcentaje = ($c['votos'] * 100) / $totalVotos;
+if($totalCategoria > 0){
+    $porcentaje = ($c['votos'] * 100) / $totalCategoria;
 }
-
 ?>
 
 <tr>
@@ -288,14 +359,10 @@ if($totalVotos > 0){
 </td>
 
 <td>
-<?php echo $c['tipo']; ?>
-</td>
-
-<td>
 <?php echo $c['votos']; ?>
 </td>
 
-<td width="300">
+<td width="350">
 
 <div class="barra">
 
@@ -308,15 +375,32 @@ style="width: <?php echo $porcentaje; ?>%">
 
 <br>
 
+<b>
 <?php echo round($porcentaje,2); ?>%
+</b>
 
 </td>
 
 </tr>
 
-<?php } ?>
+<?php
 
-</table>
+$next = mysqli_fetch_assoc($candidatos);
+
+if(!$next || $next['tipo'] != $actual){
+    echo "</table><br>";
+}
+
+if($next){
+    mysqli_data_seek(
+        $candidatos,
+        mysqli_num_rows($candidatos) - mysqli_num_rows($candidatos) + mysqli_num_rows($candidatos)
+    );
+}
+
+}
+
+?>
 
 </div>
 

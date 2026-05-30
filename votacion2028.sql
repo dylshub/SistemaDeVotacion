@@ -50,7 +50,7 @@ CREATE TABLE `candidatos` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `candidatos`
+--  de datos para la tabla `candidatos`
 --
 
 INSERT INTO `candidatos` (`id`, `nombre`, `foto`, `partido_id`, `tipo_id`, `votos`) VALUES

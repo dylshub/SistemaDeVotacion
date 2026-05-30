@@ -78,3 +78,4 @@ VALUES
 ('Maria Gonzalez','',2,1),
 ('Jose Ramirez','',1,2),
 ('Ana Morales','',2,3);
+//diseño de base de datos prueba uno 

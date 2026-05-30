@@ -144,7 +144,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `nombre`, `correo`, `password`, `rol`, `mesa_id`) VALUES
-(1, 'Administrador', 'admin@votacion.com', '0192023a7bbd73250516f069df18b500', 'admin', NULL),
+(1, 'Administrador', 'admin@votacion.com', '123', 'admin', NULL),
 (2, 'Juan Perez', 'juan@gmail.com', '81dc9bdb52d04dc20036dbd8313ed055', 'votante', 1),
 (3, 'Dylan', 'dylan@gmail.com', '4f97319b308ed6bd3f0c195c176bbd77', 'votante', 2),
 (4, 'admin', 'admin@admin.com', '21232f297a57a5a743894a0e4a801fc3', 'admin', 3);

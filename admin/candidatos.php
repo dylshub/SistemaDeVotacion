@@ -2,7 +2,7 @@
 session_start();
 require_once("../includes/conexion.php");
 
-// Conecxion para la base de datos 
+// Conecxion para la base de datos y prueba 
 if (isset($_POST['guardar'])) {
 
     $nombre = $_POST['nombre'];

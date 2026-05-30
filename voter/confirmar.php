@@ -151,20 +151,23 @@ exit();
 | GUARDAR VOTO
 |--------------------------------------------------------------------------
 */
-
-mysqli_query($con,"
-INSERT INTO votos(
-usuario_id,
-candidato_id,
-tipo_id
-)
-VALUES(
-'$usuario',
-'$candidato',
-'$tipo'
-)
+$mesaUsuario = mysqli_query($con,"
+SELECT mesa_id
+FROM usuarios
+WHERE id='$usuario'
 ");
 
+$mesaUsuario = mysqli_fetch_assoc($mesaUsuario);
+
+$mesa_id = $mesaUsuario['mesa_id'];
+
+mysqli_query($con,"
+INSERT INTO votos
+(usuario_id,candidato_id,tipo_id,mesa_id)
+
+VALUES
+('$usuario','$candidato','$tipo','$mesa_id')
+");
 /*
 |--------------------------------------------------------------------------
 | SUMAR VOTO AL CANDIDATO
